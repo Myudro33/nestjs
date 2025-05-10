@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  id          Int        @id @default(autoincrement())
+  created_at  DateTime?  @default(now()) @db.Timestamp(6)
+  name        String?    @db.VarChar(255)
+  description String?    @db.VarChar(255)
+  products    products[]
+}
+
+model otpCodes {
+  id     Int      @id @unique @default(autoincrement())
+  code   String   @db.VarChar(6)
+  expiry DateTime @db.Timestamp(6)
+  userId Int
+  users  users    @relation(fields: [userId], references: [id])
+}
+
+model products {
+  id            Int             @id @unique @default(autoincrement())
+  name          String?         @db.VarChar(255)
+  price         Decimal?        @db.Decimal
+  categoryId    Int?
+  stock         Int?
+  description   String?         @db.VarChar(255)
+  slug          String?         @db.VarChar(255)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  category      category?       @relation(fields: [categoryId], references: [id])
+  usersProducts usersProducts[]
+}
+
+model roles {
+  id    Int     @id @unique @default(autoincrement())
+  name  String  @db.VarChar(255)
+  users users[]
+}
+
+model users {
+  id             Int             @id @unique @default(autoincrement())
+  firstName      String?         @db.VarChar(255)
+  lastName       String?         @db.VarChar(255)
+  email          String          @unique @db.VarChar(255)
+  password       String          @db.VarChar(255)
+  roleId         Int             @default(autoincrement())
+  attempt        Int?
+  profilePicture String?         @db.VarChar(255)
+  otpCodes       otpCodes[]
+  roles          roles           @relation(fields: [roleId], references: [id])
+  usersProducts  usersProducts[]
+}
+
+model usersProducts {
+  productId Int
+  userId    Int
+  id        Int      @id @unique @default(autoincrement())
+  products  products @relation(fields: [productId], references: [id])
+  users     users    @relation(fields: [userId], references: [id])
+}
